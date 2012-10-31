@@ -80,8 +80,8 @@ describe SetSync do
       let(:local_b) { Local.new(:b, "OldBar", 2) }
       let(:local_set) { [local_a, local_b] }
 
-      let(:remote_2) { Remote.new(2, "Bar") }
-      let(:remote_3) { Remote.new(3, "Baz") }
+      let(:remote_2) { {:remote_id => 2, :title => "Bar"} }
+      let(:remote_3) { {:remote_id => 3, :title => "Baz"} }
       let(:remote_set) { [remote_2, remote_3] }
         
       it "should call enter on the entering stuff" do
