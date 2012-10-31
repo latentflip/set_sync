@@ -8,6 +8,8 @@ phil@latentflip.com
 
 MIT
 
+[![Build Status](https://secure.travis-ci.org/jbutz/bootstrap-lightbox.png)](http://travis-ci.org/jbutz/bootstrap-lightbox)
+
 
 ```
   require 'set_sync'
