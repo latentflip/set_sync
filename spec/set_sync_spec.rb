@@ -7,6 +7,9 @@ end
 class Local < Struct.new(:local_id, :title, :their_id)
 end
 
+class MySyncer < SetSync
+
+end
 
 
 describe SetSync do
@@ -14,6 +17,45 @@ describe SetSync do
   let(:local_set) { [] }
   let(:remote_set) { [] }
   subject { set_sync }
+
+  context "local/remote binding" do
+    it 'defaults to id' do
+      set = SetSync.new([], [])
+      set.local_binding.should ==  :id
+      set.remote_binding.should == :id
+    end
+    it 'accepts on initialize' do
+      set = SetSync.new([], [], :local_binding => :foo, :remote_binding => :bar)
+      set.local_binding.should == :foo
+      set.remote_binding.should == :bar
+    end
+    it 'accepts as class method' do
+      class MySet < SetSync
+        local_binding :baz
+        remote_binding :bux
+      end
+
+      set = MySet.new([], [])
+      set.local_binding.should == :baz
+      set.remote_binding.should == :bux
+    end
+  end
+
+  context "on_enter etc" do
+    it 'accepts as class method' do
+      class MySet < SetSync
+        on_enter { |r| r }
+        on_exit { |l| l }
+        on_update { |l,r| [l,r] }
+      end
+
+      set = MySet.new([], [])
+      set.do_enter('a').should == 'a'
+      set.do_exit('b').should == 'b'
+      set.do_update('c', 'd').should == ['c','d']
+    end
+  end
+  
 
   context "local set empty" do
     let(:remote_set) { [
@@ -74,17 +116,25 @@ describe SetSync do
     its(:exiting) { should == Set.new([2]) }
   end
 
-  context "block calling" do
-    describe "entering" do
-      let(:local_a) { Local.new(:a, "OldFoo", 1) }
-      let(:local_b) { Local.new(:b, "OldBar", 2) }
-      let(:local_set) { [local_a, local_b] }
+  context "syncing" do
+    let(:local_a) { Local.new(:a, "OldFoo", 1) }
+    let(:local_b) { Local.new(:b, "OldBar", 2) }
+    let(:local_set) { [local_a, local_b] }
 
-      let(:remote_2) { {:remote_id => 2, :title => "Bar"} }
-      let(:remote_3) { {:remote_id => 3, :title => "Baz"} }
-      let(:remote_set) { [remote_2, remote_3] }
+    let(:remote_2) { {:remote_id => 2, :title => "Bar"} }
+    let(:remote_3) { {:remote_id => 3, :title => "Baz"} }
+    let(:remote_set) { [remote_2, remote_3] }
+
+    context "class calling" do
+      
+
+      
+    end
+
+
+    context "block calling" do
         
-      it "should call enter on the entering stuff" do
+      it "should sync the sets" do
         local_repo = stub
 
         local_repo.should_receive(:create).with remote_3
@@ -106,13 +156,10 @@ describe SetSync do
           sync.on_update do |local, remote|
             local_repo.update(local, remote)
           end
-
         end
       end
-
     end
 
 
   end
-
 end

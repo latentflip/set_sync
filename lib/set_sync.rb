@@ -1,13 +1,39 @@
 require 'set'
 class SetSync
-  attr_accessor :local_binding, :remote_binding
 
+  class << self
+    def local_binding(binding=nil)
+      if binding
+        @local_binding = binding
+      else
+        @local_binding
+      end
+    end
+    def remote_binding(binding=nil)
+      if binding
+        @remote_binding = binding
+      else
+        @remote_binding
+      end
+    end
+    def on_enter(&blk)
+      blk ? @on_enter=blk : @on_enter
+    end
+    def on_exit(&blk)
+      blk ? @on_exit=blk : @on_enter
+    end
+    def on_update(&blk)
+      blk ? @on_update=blk : @on_update
+    end
+  end
+
+  attr_accessor :local_binding, :remote_binding
   def initialize(local, remote, options={}, &blk)
     @local = local
     @remote = remote
     
-    @local_binding = options[:local_binding] || :id
-    @remote_binding = options[:remote_binding] || :id
+    @local_binding = options[:local_binding] || self.class.local_binding || :id
+    @remote_binding = options[:remote_binding] || self.class.remote_binding || :id
 
     sync_block(blk) if blk
   end
@@ -53,20 +79,33 @@ class SetSync
 
   def do_entering
     entering.each do |binding|
-      @on_enter.call remote_hash[binding]
+      do_enter remote_hash[binding]
     end
   end
 
   def do_exiting
     exiting.each do |binding|
-      @on_exit.call local_hash[binding]
+      do_exit local_hash[binding]
     end
   end
 
   def do_updating
     updating.each do |binding|
-      @on_update.call local_hash[binding], remote_hash[binding]
+      do_update local_hash[binding], remote_hash[binding]
     end
+  end
+
+  def do_enter(remote)
+    blk = @on_enter || self.class.on_enter
+    blk.call remote
+  end
+  def do_exit(local)
+    blk = @on_exit || self.class.on_exit
+    blk.call local
+  end
+  def do_update(local, remote)
+    blk = @on_update || self.class.on_update
+    blk.call local, remote
   end
 
   def on_enter(&blk)
