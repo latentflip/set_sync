@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = 'set_sync'
-  s.version = '0.0.2'
-  s.date = '2012-10-31'
+  s.version = '0.0.3'
+  s.date = '2012-11-01'
   s.description = 'Syncs sets'
   s.summary = 'Syncs sets between things'
   s.authors = ['Philip Roberts']
