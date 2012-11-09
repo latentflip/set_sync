@@ -39,6 +39,35 @@ describe SetSync do
       set.local_binding.should == :baz
       set.remote_binding.should == :bux
     end
+
+    it 'accepts a proc' do
+      remote = Remote.new(1, "foo")
+      local_updated = Local.new(100, "foo", 100) #for some reason there is a factor of 100 (to test the proc behaviour)
+      local_exited = Local.new(1, "not foo", 1)
+
+      local_exited.should_receive(:do_exit)
+      local_updated.should_receive(:update).with(remote)
+
+
+      SetSync.new([local_updated, local_exited], [remote]) do |s|
+
+        s.local_binding = ->(local) { local.their_id/50.0 }
+        s.remote_binding = ->(remote) { remote.remote_id*2.0 }
+
+        s.on_enter do |remote|
+          throw "Should not be called"
+        end
+
+        s.on_exit do |local|
+          local.do_exit
+        end
+
+        s.on_update do |local, remote|
+          local.update(remote)
+        end
+      end
+      
+    end
   end
 
   context "on_enter etc" do
@@ -126,9 +155,6 @@ describe SetSync do
     let(:remote_set) { [remote_2, remote_3] }
 
     context "class calling" do
-      
-
-      
     end
 
 
@@ -159,7 +185,6 @@ describe SetSync do
         end
       end
     end
-
 
   end
 end

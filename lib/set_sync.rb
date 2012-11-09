@@ -42,7 +42,9 @@ class SetSync
     @local_hash ||= begin
                       h = {}
                       @local.each do |l|
-                        if l.respond_to? local_binding #is an objecty thing
+                        if local_binding.respond_to? :call
+                          h[ local_binding.call(l) ] = l
+                        elsif l.respond_to? local_binding #is an objecty thing
                           h[l.send(local_binding)] = l
                         elsif l.respond_to? :[]      #is a hashy thing
                           h[ l[local_binding] ] = l
@@ -56,7 +58,9 @@ class SetSync
     @remote_hash ||= begin
                       h = {}
                       @remote.each do |r|
-                        if r.respond_to? remote_binding
+                        if remote_binding.respond_to? :call
+                          h[ remote_binding.call(r) ] = r
+                        elsif r.respond_to? remote_binding
                           h[ r.send(remote_binding) ] = r
                         elsif r.respond_to? :[]
                           h[ r[remote_binding] ] = r
