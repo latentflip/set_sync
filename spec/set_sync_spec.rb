@@ -145,7 +145,8 @@ describe SetSync do
     its(:exiting) { should == Set.new([2]) }
   end
 
-  context "syncing" do
+
+  context "with delegate object" do
     let(:local_a) { Local.new(:a, "OldFoo", 1) }
     let(:local_b) { Local.new(:b, "OldBar", 2) }
     let(:local_set) { [local_a, local_b] }
@@ -154,9 +155,32 @@ describe SetSync do
     let(:remote_3) { {:remote_id => 3, :title => "Baz"} }
     let(:remote_set) { [remote_2, remote_3] }
 
-    context "class calling" do
-    end
+    before {
+      class Delegate
+        def on_update(local_remote)
+        end
+      end
+    }
 
+    it 'should sync the sets' do
+      delegate = stub
+      delegate.should_receive(:on_enter).with(remote_3)
+      delegate.should_receive(:on_exit).with(local_a)
+      delegate.should_receive(:on_update).with(local_b, remote_2)
+
+      syncer = SetSync.new(local_set, remote_set, :local_binding => :their_id, :remote_binding => :remote_id)
+      syncer.sync_with_delegate(delegate)
+    end
+  end
+
+  context "syncing" do
+    let(:local_a) { Local.new(:a, "OldFoo", 1) }
+    let(:local_b) { Local.new(:b, "OldBar", 2) }
+    let(:local_set) { [local_a, local_b] }
+
+    let(:remote_2) { {:remote_id => 2, :title => "Bar"} }
+    let(:remote_3) { {:remote_id => 3, :title => "Baz"} }
+    let(:remote_set) { [remote_2, remote_3] }
 
     context "block calling" do
         

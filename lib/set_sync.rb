@@ -75,6 +75,13 @@ class SetSync
     do_sync
   end
 
+  def sync_with_delegate(delegate)
+    on_enter { |remote| delegate.on_enter(remote) }
+    on_update { |local, remote| delegate.on_update(local, remote) }
+    on_exit { |local| delegate.on_exit(local) }
+    do_sync
+  end
+
   def do_sync
     do_entering
     do_exiting
